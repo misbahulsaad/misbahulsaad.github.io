@@ -1,0 +1,591 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Saad</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&family=Young+Serif&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the whole screen is a night field with drifting fireflies. A soft terminal floats over it (bottom on phones, centre on desktop) and glows warmer as the jar fills. */
+:root {
+  --bg: #E9EEE5;
+  --fg: #27312B;
+  --muted: #5C6A60;
+  --soft: #DCE4D7;
+  --line: #C6D0C1;
+  --accent: #9C5219;
+  --scene-top: #3A3C5E;
+  --scene-bot: #232540;
+  --grass-far: #17211D;
+  --grass-near: #0D1511;
+  --star: #D5D9EC;
+  --glow: #F3C85C;
+  --glow-rgb: 243, 200, 92;
+  --jar: 0;
+  --serif: 'Young Serif', Georgia, 'Times New Roman', serif;
+  --sans: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1815;
+    --fg: #EFE7DA;
+    --muted: #B1A592;
+    --soft: #2A241F;
+    --line: #3A322B;
+    --accent: #F2B661;
+    --scene-top: #2A2840;
+    --scene-bot: #17151F;
+    --grass-far: #121A17;
+    --grass-near: #0A100E;
+    --star: #B7BCD3;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1815;
+  --fg: #EFE7DA;
+  --muted: #B1A592;
+  --soft: #2A241F;
+  --line: #3A322B;
+  --accent: #F2B661;
+  --scene-top: #2A2840;
+  --scene-bot: #17151F;
+  --grass-far: #121A17;
+  --grass-near: #0A100E;
+  --star: #B7BCD3;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+html { background: var(--scene-bot); }
+body {
+  background: var(--scene-bot);
+  color: var(--fg);
+  font: 400 1rem/1.6 var(--sans);
+  margin: 0;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  padding-block: 1rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.field {
+  position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+}
+.stage {
+  position: relative; z-index: 1; flex: 1; min-height: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-block-end: 2.25rem; pointer-events: none;
+}
+
+.term {
+  pointer-events: auto;
+  width: min(40rem, 100%);
+  height: min(30rem, 62vh); height: min(30rem, 62dvh);
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--bg); color: var(--fg);
+  border-radius: 18px;
+  font: 400 .875rem/1.6 var(--mono);
+  box-shadow:
+    0 0 calc(28px + 60px * var(--jar)) rgba(var(--glow-rgb), calc(.1 + .3 * var(--jar))),
+    0 12px 32px rgba(0, 0, 0, .28);
+  transition: box-shadow .8s;
+}
+@media (min-width: 760px) {
+  .stage { align-items: center; padding-block-end: 0; }
+  .term { height: min(34rem, 72vh); height: min(34rem, 72dvh); }
+}
+
+.top {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .55rem .6rem .55rem 1rem;
+  background: var(--soft); color: var(--muted);
+  font: 600 .8rem/1 var(--sans);
+}
+.top .path { margin-right: auto; }
+.jarbox { display: inline-flex; align-items: center; gap: .4rem; font-variant-numeric: tabular-nums; }
+.jar { width: 15px; height: 20px; color: var(--muted); }
+.snd {
+  font: inherit; color: inherit; background: none; border: 0; cursor: pointer;
+  padding: .5rem .4rem; display: inline-flex; align-items: center; gap: .45rem; border-radius: 999px;
+}
+.snd i { width: .5rem; height: .5rem; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--muted); }
+.snd[aria-pressed="true"] { color: var(--fg); }
+.snd[aria-pressed="true"] i { background: var(--accent); box-shadow: none; }
+
+.out {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: 1rem 1rem .25rem; display: flex; flex-direction: column; gap: .15rem;
+}
+.ln { overflow-wrap: anywhere; white-space: pre-wrap; }
+.dim { color: var(--muted); }
+.cmd .ps { color: var(--accent); }
+.big { font: 400 1.6rem/1.2 var(--serif); margin: .45rem 0 .2rem; white-space: normal; }
+.kv { display: flex; gap: 1rem; }
+.kv .k { flex: none; width: 5.5rem; color: var(--muted); }
+.row {
+  display: flex; justify-content: space-between; gap: 1rem;
+  color: var(--fg); text-decoration: none; padding: .1rem 0;
+}
+.row .u { color: var(--muted); text-align: right; }
+.row:hover, .row:focus-visible { color: var(--accent); }
+
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; padding: .5rem 1rem 0; }
+.chip {
+  font: 500 .78rem/1 var(--mono); color: var(--muted); background: var(--soft);
+  border: 0; border-radius: 999px; padding: .55rem .8rem; cursor: pointer; transition: color .2s;
+}
+.chip:hover { color: var(--accent); }
+
+.inrow {
+  display: flex; align-items: center; gap: .6rem;
+  margin: .4rem .5rem .5rem; padding: .6rem .5rem; border-radius: 12px;
+}
+.inrow:focus-within { background: var(--soft); }
+.ps1 { color: var(--accent); white-space: nowrap; }
+.inrow input {
+  flex: 1; min-width: 0; background: none; border: 0; outline: 0; padding: 0;
+  color: var(--fg); caret-color: var(--accent); font: 400 1rem/1.4 var(--mono);
+}
+.inrow input::placeholder { color: var(--muted); opacity: .8; }
+@media (max-width: 520px) { .ps1 .long { display: none; } }
+</style>
+
+<canvas class="field" id="field" aria-hidden="true"></canvas>
+
+<div class="stage">
+  <section class="term" id="term" aria-label="Terminal">
+    <div class="top">
+      <span class="path">~/night-field</span>
+      <span class="jarbox" title="Fireflies in the jar">
+        <svg class="jar" viewBox="0 0 34 44" aria-hidden="true">
+          <ellipse id="jg" cx="17" cy="30" rx="9" ry="9" fill="var(--glow)" opacity="0"/>
+          <rect x="7" y="2" width="20" height="5" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M9 7h16v3c4 3 5 7 5 12v14a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V22c0-5 1-9 5-12z" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span id="n">0</span>
+      </span>
+      <button class="snd" id="snd" type="button" aria-pressed="false"><i></i><span id="sndText">Music off</span></button>
+    </div>
+    <div class="out" id="out" role="log" aria-live="polite"></div>
+    <div class="chips" id="chips"></div>
+    <form class="inrow" id="form" autocomplete="off">
+      <label class="ps1" for="in"><span class="long">saad@field:</span>~$</label>
+      <input id="in" type="text" placeholder="whoami" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go">
+    </form>
+  </section>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const cv = $('field'), cx = cv.getContext('2d');
+  const out = $('out'), inp = $('in'), term = $('term');
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const KEY = 'saad-fireflies';
+
+  let count = 0;
+  try { count = parseInt(localStorage.getItem(KEY) || '0', 10) || 0; } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, String(count)); } catch (e) {} };
+  const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  /* ---------- soft music (generated, starts only on a click or Enter) ---------- */
+  const Sound = (() => {
+    let ctx = null, master, bus, on = false, timer = 0, tPad = 0, tPluck = 0, step = 0;
+    const CH = [
+      [110, 164.81, 220, 261.63, 329.63],
+      [87.31, 130.81, 220, 261.63, 349.23],
+      [130.81, 196, 261.63, 329.63, 392],
+      [98, 146.83, 246.94, 293.66, 392]
+    ];
+    const SC = [440, 523.25, 587.33, 659.25, 783.99, 880];
+    const BELL = [880, 1046.5, 1318.51, 1567.98];
+    const pick = a => a[Math.floor(Math.random() * a.length)];
+
+    function build() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ctx = new AC();
+      master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1500; lp.Q.value = .3;
+      const d = ctx.createDelay(1.5); d.delayTime.value = .46;
+      const fb = ctx.createGain(); fb.gain.value = .36;
+      const wet = ctx.createGain(); wet.gain.value = .45;
+      lp.connect(master); lp.connect(d); d.connect(fb); fb.connect(d); d.connect(wet); wet.connect(master);
+      bus = lp;
+      return true;
+    }
+    function tone(f, t, dur, peak, att, type) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = type || 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(peak, t + att);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(bus);
+      o.start(t); o.stop(t + dur + .1);
+    }
+    function sched() {
+      const now = ctx.currentTime;
+      while (tPad < now + 1) {
+        CH[step % CH.length].forEach((f, i) => tone(f * (i % 2 ? 1.002 : .998), tPad + i * .15, 9, .035, 3.5));
+        step++; tPad += 8;
+      }
+      while (tPluck < now + 1) {
+        const f = pick(SC) / (Math.random() < .25 ? 2 : 1);
+        tone(f, tPluck, 3.2, .07, .015);
+        tPluck += 2.2 + Math.random() * 3.6;
+      }
+    }
+    function toggle() {
+      if (!ctx && !build()) return null;
+      on = !on;
+      const n = ctx.currentTime;
+      master.gain.cancelScheduledValues(n);
+      master.gain.setValueAtTime(master.gain.value, n);
+      if (on) {
+        ctx.resume();
+        tPad = n + .1; tPluck = n + 2;
+        master.gain.linearRampToValueAtTime(.55, n + 2);
+        timer = setInterval(sched, 400); sched();
+      } else {
+        master.gain.linearRampToValueAtTime(0, n + .8);
+        clearInterval(timer);
+        setTimeout(() => { if (!on) ctx.suspend(); }, 1000);
+      }
+      return on;
+    }
+    function chime() {
+      if (!on || !ctx) return;
+      tone(pick(BELL), ctx.currentTime, 2.2, .05, .01);
+    }
+    return { toggle, chime, isOn: () => on };
+  })();
+
+  /* ---------- terminal ---------- */
+  let chain = Promise.resolve();
+  function put(el, delay) {
+    chain = chain.then(() => new Promise(res => {
+      const go = () => { out.appendChild(el); out.scrollTop = out.scrollHeight; res(); };
+      if (delay && !calm) setTimeout(go, delay); else go();
+    }));
+  }
+  function ln(text, cls, delay) {
+    const d = document.createElement('div');
+    d.className = 'ln' + (cls ? ' ' + cls : '');
+    d.textContent = text;
+    put(d, delay);
+  }
+  function kv(k, v, delay) {
+    const d = document.createElement('div'); d.className = 'ln kv';
+    const a = document.createElement('span'); a.className = 'k'; a.textContent = k;
+    const b = document.createElement('span'); b.textContent = v;
+    d.append(a, b); put(d, delay);
+  }
+  function row(name, handle, url, delay) {
+    const a = document.createElement('a');
+    a.className = 'ln row'; a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    const n = document.createElement('span'); n.textContent = name;
+    const u = document.createElement('span'); u.className = 'u'; u.textContent = handle + ' ↗';
+    a.append(n, u); put(a, delay);
+  }
+  function echo(cmd) {
+    const d = document.createElement('div'); d.className = 'ln cmd';
+    const p = document.createElement('span'); p.className = 'ps'; p.textContent = '$ ';
+    d.append(p, document.createTextNode(cmd)); put(d);
+  }
+
+  const SITES = {
+    github:    { name: 'GitHub',          h: 'misbahulsaad',    u: 'https://github.com/misbahulsaad' },
+    linkedin:  { name: 'LinkedIn',        h: 'in/misbahulsaad', u: 'https://www.linkedin.com/in/misbahulsaad' },
+    tryhackme: { name: 'TryHackMe',       h: 'sylv01d',         u: 'https://tryhackme.com/p/sylv01d' },
+    hackerone: { name: 'HackerOne',       h: 'sylv01d',         u: 'https://hackerone.com/sylv01d' },
+    pico:      { name: 'picoCTF / CyLab', h: 'sylv01d',         u: 'https://learn.cylabacademy.org/users/sylv01d' }
+  };
+  const ALIAS = { gh: 'github', li: 'linkedin', thm: 'tryhackme', h1: 'hackerone', picoctf: 'pico', cylab: 'pico', who: 'whoami', about: 'whoami' };
+
+  const LINES = [
+    [0, 'Click or tap a firefly in the sky to catch it.'],
+    [1, 'One in the jar.'],
+    [5, 'The jar is warming up.'],
+    [15, 'Getting bright in there.'],
+    [30, 'Enough light to read by.'],
+    [60, 'That is a lot of fireflies.'],
+    [100, 'Maybe let a few go.']
+  ];
+  const lineFor = n => { let s = LINES[0][1]; for (const [k, v] of LINES) if (n >= k) s = v; return s; };
+
+  function setMusicUI(on) {
+    $('snd').setAttribute('aria-pressed', String(on));
+    $('sndText').textContent = on ? 'Music on' : 'Music off';
+  }
+
+  const CMDS = {
+    help() {
+      ln('Things you can type:', 'dim');
+      [['whoami', 'who lives here'], ['links', 'where to find me'], ['catch', 'catch the nearest firefly'],
+       ['jar', 'peek in the jar'], ['release', 'let them all go'], ['music on|off', 'soft background music'],
+       ['clear', 'tidy the screen']].forEach(([k, v]) => kv(k, v));
+      ln('Or a site name: ' + Object.keys(SITES).join(', ') + '.', 'dim');
+    },
+    whoami() {
+      ln('Md. Misbahul Islam (Saad)', 'big', 250);
+      ln('Goes by Saad.', 'dim', 200);
+      kv('role', 'Computer Science Student at BRAC University', 220);
+      kv('into', 'Cybersecurity, Linux, CTFs', 220);
+      kv('usually', 'in a Linux terminal', 220);
+      kv('handle', 'misbahulsaad or sylv01d', 220);
+      ln('Type links to see where I hang out online.', 'dim', 260);
+    },
+    links() { Object.values(SITES).forEach((s, i) => row(s.name, s.h, s.u, i ? 90 : 0)); },
+    catch() {
+      const r = term.getBoundingClientRect();
+      const covered = f => f.x > r.left - 16 && f.x < r.right + 16 && f.y > r.top - 16 && f.y < r.bottom + 16;
+      let best = null, bd = 1e12;
+      for (const f of flies) {
+        if (f.fade < .3) continue;
+        const d = (f.x - W / 2) ** 2 + (f.y - H / 2) ** 2 + (covered(f) ? 1e9 : 0);
+        if (d < bd) { bd = d; best = f; }
+      }
+      if (!best) { ln('None close right now. Give them a moment.', 'dim'); return; }
+      catchFly(best);
+      ln('Caught one. ' + count + ' in the jar.');
+    },
+    jar() { ln(count + (count === 1 ? ' firefly' : ' fireflies') + ' in the jar. ' + lineFor(count)); },
+    release() {
+      count = 0; save(); ui();
+      ln('Let go. They stay close.', 'dim');
+    },
+    music(args) {
+      const want = (args[0] || '').toLowerCase();
+      if (want && want !== 'on' && want !== 'off') { ln('Try: music on, or music off.', 'dim'); return; }
+      let r = null;
+      try {
+        const st = Sound.isOn();
+        r = (want === 'on' && st) || (want === 'off' && !st) ? st : Sound.toggle();
+      } catch (e) {}
+      if (r === null) { $('snd').hidden = true; ln('No audio available here.', 'dim'); return; }
+      setMusicUI(r);
+      ln(r ? 'Soft music on.' : 'Music off.', 'dim');
+    },
+    clear() { chain = chain.then(() => { out.textContent = ''; }); },
+    sudo() { ln("Nice try. The fireflies don't take orders."); },
+    exit() { ln('You can stay as long as you like.'); }
+  };
+  Object.keys(SITES).forEach(k => {
+    CMDS[k] = () => row(SITES[k].name, SITES[k].h, SITES[k].u);
+  });
+  const has = n => Object.prototype.hasOwnProperty.call(CMDS, n);
+
+  const hist = []; let hi = 0;
+  function run(raw) {
+    const text = raw.trim();
+    if (!text) return;
+    hist.push(text); hi = hist.length;
+    echo(text);
+    const parts = text.split(/\s+/);
+    let name = parts[0].toLowerCase();
+    if (has(ALIAS[name] ? ALIAS[name] : '') ) name = ALIAS[name];
+    if (has(name)) CMDS[name](parts.slice(1));
+    else ln('command not found: ' + parts[0] + '. Try help.', 'dim');
+  }
+
+  $('form').addEventListener('submit', e => { e.preventDefault(); const v = inp.value; inp.value = ''; run(v); });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp') { e.preventDefault(); if (hi > 0) inp.value = hist[--hi]; }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(hi + 1, hist.length); inp.value = hist[hi] || ''; }
+    else if (e.key === 'Tab') {
+      e.preventDefault();
+      const v = inp.value.toLowerCase();
+      if (!v) return;
+      const m = Object.keys(CMDS).filter(k => k.startsWith(v));
+      if (m.length === 1) inp.value = m[0];
+    }
+  });
+  $('snd').addEventListener('click', () => CMDS.music([]));
+  term.addEventListener('click', e => {
+    if (!matchMedia('(pointer: fine)').matches) return;
+    if (e.target.closest('a, button, input')) return;
+    if (String(getSelection())) return;
+    inp.focus();
+  });
+  ['whoami', 'links', 'catch', 'jar', 'help'].forEach(c => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = c;
+    b.addEventListener('click', () => run(c));
+    $('chips').appendChild(b);
+  });
+
+  const hr = new Date().getHours();
+  ln(hr < 5 ? 'Still up?' : hr < 12 ? 'Good morning.' : hr < 18 ? 'Good afternoon.' : 'Good evening.', 'big');
+  ln('A quiet night in the field. A few fireflies are about.');
+  ln('Type whoami to see who lives here, or help for everything else.', 'dim');
+  if (matchMedia('(pointer: fine)').matches) inp.focus({ preventScroll: true });
+
+  /* ---------- the field ---------- */
+  let W = 0, H = 0, dpr = 1, scene = null, glow = [243, 200, 92];
+  let flies = [], bits = [];
+
+  function rng(a) {
+    return () => {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function hex(h) {
+    const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h);
+    return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [243, 200, 92];
+  }
+  function blades(s, r, color, step, min, max) {
+    s.fillStyle = color;
+    s.fillRect(0, H - 5, W, 5);
+    for (let x = -step; x <= W + step; x += step) {
+      const h = min + r() * (max - min), lean = (r() - .5) * 12;
+      s.beginPath();
+      s.moveTo(x, H);
+      s.quadraticCurveTo(x + lean * .2, H - h * .6, x + lean, H - h);
+      s.quadraticCurveTo(x + lean * .2 + 2.5, H - h * .5, x + step * .9, H);
+      s.fill();
+    }
+  }
+  function paintScene() {
+    if (!W || !H) return;
+    glow = hex(tok('--glow'));
+    scene = document.createElement('canvas');
+    scene.width = Math.max(1, Math.round(W * dpr));
+    scene.height = Math.max(1, Math.round(H * dpr));
+    const s = scene.getContext('2d');
+    s.scale(dpr, dpr);
+    const g = s.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, tok('--scene-top')); g.addColorStop(1, tok('--scene-bot'));
+    s.fillStyle = g; s.fillRect(0, 0, W, H);
+    const r = rng(7);
+    s.fillStyle = tok('--star');
+    for (let i = 0; i < Math.round(W / 12); i++) {
+      s.globalAlpha = .15 + r() * .5;
+      s.fillRect(r() * W, r() * H * .6, 1.2, 1.2);
+    }
+    s.globalAlpha = 1;
+    blades(s, r, tok('--grass-far'), 5, 22, 46);
+    blades(s, r, tok('--grass-near'), 7, 12, 32);
+  }
+
+  const target = () => Math.max(7, Math.min(16, Math.round(W * H / 60000)));
+  function spawn(edge) {
+    const f = { x: 0, y: 30 + Math.random() * Math.max(10, H - 110), vx: 0, vy: 0, ph: Math.random() * 6.283, rate: .02 + Math.random() * .02, fade: 0 };
+    f.x = edge ? (Math.random() < .5 ? -8 : W + 8) : 30 + Math.random() * Math.max(10, W - 60);
+    return f;
+  }
+
+  function resize(w, h) {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = w; H = h;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    paintScene();
+    while (flies.length < target()) flies.push(spawn(false));
+  }
+  new ResizeObserver(es => {
+    const r = es[0].contentRect;
+    if (r.width > 0 && r.height > 0) resize(r.width, r.height);
+  }).observe(cv);
+
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paintScene);
+  new MutationObserver(paintScene).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  function step(f, dt) {
+    const m = 28, top = 24, bot = H - 58, max = calm ? .2 : .45;
+    let ax = 0, ay = 0;
+    if (f.x < m) ax = .02; else if (f.x > W - m) ax = -.02;
+    if (f.y < top) ay = .02; else if (f.y > bot) ay = -.02;
+    f.vx += ((Math.random() - .5) * .03 + ax) * dt;
+    f.vy += ((Math.random() - .5) * .03 + ay) * dt;
+    const sp = Math.hypot(f.vx, f.vy);
+    if (sp > max) { f.vx *= max / sp; f.vy *= max / sp; }
+    f.x += f.vx * dt; f.y += f.vy * dt;
+    f.ph += f.rate * dt;
+    if (f.fade < 1) f.fade = Math.min(1, f.fade + dt / 60);
+  }
+  function drawFly(f) {
+    const p = .5 + .5 * Math.sin(f.ph);
+    const a = (calm ? .75 : .4 + .6 * p) * f.fade;
+    const R = 16 + 8 * p, c = glow.join(',');
+    const g = cx.createRadialGradient(f.x, f.y, 0, f.x, f.y, R);
+    g.addColorStop(0, 'rgba(' + c + ',' + (.6 * a).toFixed(3) + ')');
+    g.addColorStop(1, 'rgba(' + c + ',0)');
+    cx.fillStyle = g;
+    cx.beginPath(); cx.arc(f.x, f.y, R, 0, 6.283); cx.fill();
+    cx.fillStyle = 'rgba(255,247,214,' + Math.min(1, a + .2).toFixed(3) + ')';
+    cx.beginPath(); cx.arc(f.x, f.y, 2.1, 0, 6.283); cx.fill();
+  }
+  function burst(x, y) {
+    for (let i = 0; i < 7; i++) {
+      const a = Math.random() * 6.283, s = 1 + Math.random() * 1.2;
+      bits.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - .3, life: 1 });
+    }
+  }
+
+  let last = performance.now();
+  function frame(t) {
+    const dt = Math.min((t - last) / 16.667, 3); last = t;
+    if (scene) {
+      cx.drawImage(scene, 0, 0, W, H);
+      for (const f of flies) { step(f, dt); drawFly(f); }
+      const c = glow.join(',');
+      for (let i = bits.length - 1; i >= 0; i--) {
+        const b = bits[i];
+        b.x += b.vx * dt; b.y += b.vy * dt; b.vx *= .94; b.vy *= .94; b.life -= dt / 40;
+        if (b.life <= 0) { bits.splice(i, 1); continue; }
+        cx.fillStyle = 'rgba(' + c + ',' + b.life.toFixed(3) + ')';
+        cx.beginPath(); cx.arc(b.x, b.y, 1.6, 0, 6.283); cx.fill();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* ---------- catching ---------- */
+  function ui() {
+    const k = Math.min(count / 40, 1);
+    $('n').textContent = count;
+    $('jg').setAttribute('opacity', (k * .95).toFixed(2));
+    document.documentElement.style.setProperty('--jar', k.toFixed(3));
+  }
+  function nearest(x, y, max) {
+    let best = null, bd = max * max;
+    for (const f of flies) {
+      if (f.fade < .3) continue;
+      const d = (f.x - x) ** 2 + (f.y - y) ** 2;
+      if (d < bd) { bd = d; best = f; }
+    }
+    return best;
+  }
+  function catchFly(f) {
+    flies.splice(flies.indexOf(f), 1);
+    burst(f.x, f.y);
+    count++; save(); ui();
+    try { Sound.chime(); } catch (e) {}
+    const hit = LINES.find(l => l[0] === count && l[0] > 0);
+    if (hit) ln(hit[1], 'dim');
+    setTimeout(() => { if (flies.length < target()) flies.push(spawn(true)); }, 900 + Math.random() * 900);
+  }
+  cv.addEventListener('pointerdown', e => {
+    const f = nearest(e.clientX, e.clientY, e.pointerType === 'touch' ? 40 : 34);
+    if (f) catchFly(f);
+  });
+  cv.addEventListener('pointermove', e => {
+    if (e.pointerType === 'touch') return;
+    cv.style.cursor = nearest(e.clientX, e.clientY, 34) ? 'pointer' : 'default';
+  });
+
+  ui();
+})();
+</script>
+
+</body></html>
